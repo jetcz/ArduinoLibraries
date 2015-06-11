@@ -55,7 +55,7 @@
 /// Caution, each symbol is transmitted LSBit first, 
 /// but each byte is transmitted high nybble first
 /// This is the number of 6 bit nibbles in the preamble
-#define RH_ASK_PREAMBLE_LEN 8
+#define RH_ASK_PREAMBLE_LEN 16
 
 /////////////////////////////////////////////////////////////////////
 /// \class RH_ASK RH_ASK.h <RH_ASK.h>
