@@ -5,7 +5,7 @@
   modified to use up to 12 bits ADC resolution (ex. Arduino Due)
   by boredman@boredomprojects.net 26.12.2013
   Low Pass filter for offset removal replaces HP filter 1/1/2015 - RW
-*/
+  */
 
 #ifndef EmonLib_h
 #define EmonLib_h
@@ -36,27 +36,32 @@
 
 class EnergyMonitor
 {
-  public:
+public:
 
-    void voltage(unsigned int _inPinV, double _VCAL, double _PHASECAL);
-    void current(unsigned int _inPinI, double _ICAL);
+	void voltage(unsigned int _inPinV, double _VCAL, double _PHASECAL);
+	void current(unsigned int _inPinI1, unsigned int _inPinI2, double _ICAL);
 
-    void voltageTX(double _VCAL, double _PHASECAL);
-    void currentTX(unsigned int _channel, double _ICAL);
+	void voltageTX(double _VCAL, double _PHASECAL);
+	void currentTX(unsigned int _channel, double _ICAL);
 
-    void calcVI(unsigned int crossings, float vcc);
+	void calcVI(unsigned int crossings, float vcc);
 
 
-    //Useful value variables
-    double realPower,
-       apparentPower,
-       powerFactor,
-       Vrms,
-       Irms;
+	//Useful value variables
+	double realPower1,
+		apparentPower1,
+		powerFactor1,
+		Vrms,
+		Irms1,
+		realPower2,
+		apparentPower2,
+		powerFactor2,
+		Irms2;
 
 private:
 	unsigned int inPinV;
-	unsigned int inPinI;
+	unsigned int inPinI1;
+	unsigned int inPinI2;
 	//Calibration coefficients
 	//These need to be set in order to obtain accurate results
 	double VCAL;

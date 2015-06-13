@@ -28,9 +28,10 @@ void EnergyMonitor::voltage(unsigned int _inPinV, double _VCAL, double _PHASECAL
 	PHASECAL = _PHASECAL;
 }
 
-void EnergyMonitor::current(unsigned int _inPinI, double _ICAL)
+void EnergyMonitor::current(unsigned int _inPinI1, unsigned int _inPinI2, double _ICAL)
 {
-	inPinI = _inPinI;
+	inPinI1 = _inPinI1;
+	inPinI2 = _inPinI2;
 	ICAL = _ICAL;
 }
 
@@ -46,9 +47,10 @@ void EnergyMonitor::voltageTX(double _VCAL, double _PHASECAL)
 
 void EnergyMonitor::currentTX(unsigned int _channel, double _ICAL)
 {
-	if (_channel == 1) inPinI = 3;
-	if (_channel == 2) inPinI = 0;
-	if (_channel == 3) inPinI = 1;
+	if (_channel == 1) inPinI1 = inPinI2 = 3;
+	if (_channel == 2) inPinI1 = inPinI2 = 0;
+	if (_channel == 3) inPinI1 = inPinI2 = 1;
+
 	ICAL = _ICAL;
 }
 
@@ -64,13 +66,16 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	// Variable declaration for emon_calc procedure
 	//--------------------------------------------------------------------------------------
 	static int sampleV;  							 //sample_ holds the raw analog read value
-	static int sampleI;
+	static int sampleI1;
+	static int sampleI2;
 	static double lastFilteredV, filteredV;          //Filtered_ is the raw analog value minus the DC offset
-	static double filteredI;
+	static double filteredI1;
+	static double filteredI2;
 	static double offsetV = ADC_COUNTS >> 1;;                          //Low-pass filter output
-	static double offsetI = ADC_COUNTS >> 1;;                          //Low-pass filter output               
+	static double offsetI1 = ADC_COUNTS >> 1;;                          //Low-pass filter output   
+	static double offsetI2 = ADC_COUNTS >> 1;;
 	static double phaseShiftedV;                             //Holds the calibrated phase shifted voltage.
-	static double sqV, sumV, sqI, sumI, instP, sumP;              //sq = squared, sum = Sum, inst = instantaneous
+	static double sqV, sumV, sqI1, sumI1, instP1, sumP1, sqI2, sumI2, instP2, sumP2;              //sq = squared, sum = Sum, inst = instantaneous
 	static int startV;                                       //Instantaneous voltage at start of sample window.
 	static boolean lastVCross, checkVCross;                  //Used to measure number of times threshold is crossed.
 	int SupplyVoltage = vcc;
@@ -102,7 +107,8 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 		// A) Read in raw voltage and current samples
 		//-----------------------------------------------------------------------------
 		sampleV = analogRead(inPinV);                 //Read in raw voltage signal
-		sampleI = analogRead(inPinI);                 //Read in raw current signal
+		sampleI1 = analogRead(inPinI1);                 //Read in raw current signal
+		sampleI2 = analogRead(inPinI2);                 //Read in raw current signal
 
 		//-----------------------------------------------------------------------------
 		// B) Apply digital low pass filters to extract the 2.5 V or 1.65 V dc offset,
@@ -110,8 +116,10 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 		//-----------------------------------------------------------------------------
 		offsetV = offsetV + ((sampleV - offsetV) / 1024);
 		filteredV = sampleV - offsetV;
-		offsetI = offsetI + ((sampleI - offsetI) / 1024);
-		filteredI = sampleI - offsetI;
+		offsetI1 = offsetI1 + ((sampleI1 - offsetI1) / 1024);
+		filteredI1 = sampleI1 - offsetI1;
+		offsetI2 = offsetI2 + ((sampleI2 - offsetI2) / 1024);
+		filteredI2 = sampleI2 - offsetI2;
 
 		//-----------------------------------------------------------------------------
 		// C) Root-mean-square method voltage
@@ -122,8 +130,10 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 		//-----------------------------------------------------------------------------
 		// D) Root-mean-square method current
 		//-----------------------------------------------------------------------------   
-		sqI = filteredI * filteredI;                //1) square current values
-		sumI += sqI;                                //2) sum 
+		sqI1 = filteredI1 * filteredI1;                //1) square current values
+		sumI1 += sqI1;                                //2) sum 
+		sqI2 = filteredI2 * filteredI2;                //1) square current values
+		sumI2 += sqI2;                                //2) sum 
 
 		//-----------------------------------------------------------------------------
 		// E) Phase calibration
@@ -133,8 +143,10 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 		//-----------------------------------------------------------------------------
 		// F) Instantaneous power calc
 		//-----------------------------------------------------------------------------   
-		instP = phaseShiftedV * filteredI;          //Instantaneous Power
-		sumP += instP;                               //Sum  
+		instP1 = phaseShiftedV * filteredI1;          //Instantaneous Power
+		sumP1 += instP1;                               //Sum  
+		instP2 = phaseShiftedV * filteredI2;          //Instantaneous Power
+		sumP2 += instP2;                               //Sum  
 
 		//-----------------------------------------------------------------------------
 		// G) Find the number of times the voltage has crossed the initial voltage
@@ -160,17 +172,26 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	Vrms = V_RATIO * sqrt(sumV / numberOfSamples);
 
 	double I_RATIO = ICAL *((SupplyVoltage / 1000.0) / (ADC_COUNTS));
-	Irms = I_RATIO * sqrt(sumI / numberOfSamples);
+	Irms1 = I_RATIO * sqrt(sumI1 / numberOfSamples);
+	Irms2 = I_RATIO * sqrt(sumI2 / numberOfSamples);
+
+
 
 	//Calculation power values
-	realPower = V_RATIO * I_RATIO * sumP / numberOfSamples;
-	apparentPower = Vrms * Irms;
-	powerFactor = realPower / apparentPower;
+	realPower1 = V_RATIO * I_RATIO * sumP1 / numberOfSamples;
+	apparentPower1 = Vrms * Irms1;
+	powerFactor1 = realPower1 / apparentPower1;
+
+	realPower2 = V_RATIO * I_RATIO * sumP2 / numberOfSamples;
+	apparentPower2 = Vrms * Irms2;
+	powerFactor2 = realPower2 / apparentPower2;
 
 	//Reset accumulators
 	sumV = 0;
-	sumI = 0;
-	sumP = 0;
+	sumI1 = 0;
+	sumP1 = 0;
+	sumI2 = 0;
+	sumP2 = 0;
 	crossCount = 0;
 	checkVCross = 0;
 	lastVCross = 0;
