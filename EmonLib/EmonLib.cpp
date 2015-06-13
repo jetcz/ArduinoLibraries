@@ -28,11 +28,12 @@ void EnergyMonitor::voltage(unsigned int _inPinV, double _VCAL, double _PHASECAL
 	PHASECAL = _PHASECAL;
 }
 
-void EnergyMonitor::current(unsigned int _inPinI1, unsigned int _inPinI2, double _ICAL)
+void EnergyMonitor::current(unsigned int _inPinI1, unsigned int _inPinI2, double _ICAL1, double _ICAL2)
 {
 	inPinI1 = _inPinI1;
 	inPinI2 = _inPinI2;
-	ICAL = _ICAL;
+	ICAL1 = _ICAL1;
+	ICAL2 = _ICAL2;
 }
 
 //--------------------------------------------------------------------------------------
@@ -45,13 +46,14 @@ void EnergyMonitor::voltageTX(double _VCAL, double _PHASECAL)
 	PHASECAL = _PHASECAL;
 }
 
-void EnergyMonitor::currentTX(unsigned int _channel, double _ICAL)
+void EnergyMonitor::currentTX(unsigned int _channel, double _ICAL1, double _ICAL2)
 {
 	if (_channel == 1) inPinI1 = inPinI2 = 3;
 	if (_channel == 2) inPinI1 = inPinI2 = 0;
 	if (_channel == 3) inPinI1 = inPinI2 = 1;
 
-	ICAL = _ICAL;
+	ICAL1 = _ICAL1;
+	ICAL2 = _ICAL2;
 }
 
 //--------------------------------------------------------------------------------------
@@ -168,21 +170,25 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	//Calculation of the root of the mean of the voltage and current squared (rms)
 	//Calibration coefficients applied. 
 
-	double V_RATIO = VCAL *((SupplyVoltage / 1000.0) / (ADC_COUNTS));
+	double t = ((SupplyVoltage / 1000.0) / (ADC_COUNTS));
+
+	double V_RATIO = VCAL * t;
 	Vrms = V_RATIO * sqrt(sumV / numberOfSamples);
 
-	double I_RATIO = ICAL *((SupplyVoltage / 1000.0) / (ADC_COUNTS));
-	Irms1 = I_RATIO * sqrt(sumI1 / numberOfSamples);
-	Irms2 = I_RATIO * sqrt(sumI2 / numberOfSamples);
+
+	double I_RATIO1 = ICAL1 * t;
+	double I_RATIO2 = ICAL2 * t;
+	Irms1 = I_RATIO1 * sqrt(sumI1 / numberOfSamples);
+	Irms2 = I_RATIO2 * sqrt(sumI2 / numberOfSamples);
 
 
 
 	//Calculation power values
-	realPower1 = V_RATIO * I_RATIO * sumP1 / numberOfSamples;
+	realPower1 = V_RATIO * I_RATIO1 * sumP1 / numberOfSamples;
 	apparentPower1 = Vrms * Irms1;
 	powerFactor1 = realPower1 / apparentPower1;
 
-	realPower2 = V_RATIO * I_RATIO * sumP2 / numberOfSamples;
+	realPower2 = V_RATIO * I_RATIO2 * sumP2 / numberOfSamples;
 	apparentPower2 = Vrms * Irms2;
 	powerFactor2 = realPower2 / apparentPower2;
 

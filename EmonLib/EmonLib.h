@@ -39,10 +39,10 @@ class EnergyMonitor
 public:
 
 	void voltage(unsigned int _inPinV, double _VCAL, double _PHASECAL);
-	void current(unsigned int _inPinI1, unsigned int _inPinI2, double _ICAL);
+	void current(unsigned int _inPinI1, unsigned int _inPinI2, double _ICAL1, double _ICAL2);
 
 	void voltageTX(double _VCAL, double _PHASECAL);
-	void currentTX(unsigned int _channel, double _ICAL);
+	void currentTX(unsigned int _channel, double _ICAL1, double _ICAL2);
 
 	void calcVI(unsigned int crossings, float vcc);
 
@@ -65,7 +65,8 @@ private:
 	//Calibration coefficients
 	//These need to be set in order to obtain accurate results
 	double VCAL;
-	double ICAL;
+	double ICAL1;
+	double ICAL2;
 	double PHASECAL;
 
 };
