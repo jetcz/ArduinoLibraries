@@ -91,8 +91,9 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	if (!measuring)
 	{
 		startV = analogRead(inPinV);
-		if ((startV < (ADC_COUNTS*0.55)) && (startV >(ADC_COUNTS*0.45))) {}
-		else return; 
+		//if ((startV < (ADC_COUNTS*0.55)) && (startV >(ADC_COUNTS*0.45))) {}
+		if (461 < startV < 563) {}
+		else return;
 	}
 
 	//-------------------------------------------------------------------------------------------------------------------------
@@ -185,11 +186,11 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 
 	//Calculation power values
 	realPower1 = V_RATIO * I_RATIO1 * sumP1 / numberOfSamples;
-	apparentPower1 = Vrms * Irms1;
+	//apparentPower1 = Vrms * Irms1;
 	powerFactor1 = realPower1 / apparentPower1;
 
 	realPower2 = V_RATIO * I_RATIO2 * sumP2 / numberOfSamples;
-	apparentPower2 = Vrms * Irms2;
+	//apparentPower2 = Vrms * Irms2;
 	powerFactor2 = realPower2 / apparentPower2;
 
 	//Reset accumulators
@@ -199,10 +200,10 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	sumI2 = 0;
 	sumP2 = 0;
 	crossCount = 0;
-	checkVCross = 0;
-	lastVCross = 0;
+	checkVCross = false;
+	lastVCross = false;
 	numberOfSamples = 0;
-	measuring = false;   
+	measuring = false;
 }
 
 
