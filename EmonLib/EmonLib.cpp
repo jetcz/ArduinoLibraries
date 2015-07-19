@@ -79,7 +79,7 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	static double phaseShiftedV;                             //Holds the calibrated phase shifted voltage.
 	static double sqV, sumV, sqI1, sumI1, instP1, sumP1, sqI2, sumI2, instP2, sumP2;              //sq = squared, sum = Sum, inst = instantaneous
 	static int startV;                                       //Instantaneous voltage at start of sample window.
-	static boolean lastVCross, checkVCross;                  //Used to measure number of times threshold is crossed.
+	static bool lastVCross, checkVCross, measuring;                  //Used to measure number of times threshold is crossed.
 	int SupplyVoltage = vcc;
 	static unsigned int crossCount = 0;                             //Used to measure number of times threshold is crossed.
 	static unsigned int numberOfSamples = 0;                        //This is now incremented  
@@ -87,12 +87,11 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	//-------------------------------------------------------------------------------------------------------------------------
 	// 1) Do not wait here, just return if we are on sin curve far from 0
 	//-------------------------------------------------------------------------------------------------------------------------
-	static bool measuring = false;
+
 	if (!measuring)
 	{
 		startV = analogRead(inPinV);
-		//if ((startV < (ADC_COUNTS*0.55)) && (startV >(ADC_COUNTS*0.45))) {}
-		if (461 < startV < 563) {}
+		if ((startV < (ADC_COUNTS*0.55)) && (startV >(ADC_COUNTS*0.45))) { measuring = true; }
 		else return;
 	}
 
@@ -100,9 +99,8 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	// 2) Main measurement 
 	//------------------------------------------------------------------------------------------------------------------------- 
 
-	if ((crossCount < crossings))
+	if (crossCount < crossings)
 	{
-		measuring = true;
 		numberOfSamples++;                       //Count number of times looped.
 		lastFilteredV = filteredV;               //Used for delay/phase compensation
 
@@ -117,11 +115,11 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 		// B) Apply digital low pass filters to extract the 2.5 V or 1.65 V dc offset,
 		//     then subtract this - signal is now centred on 0 counts.
 		//-----------------------------------------------------------------------------
-		offsetV = offsetV + ((sampleV - offsetV) / 1024);
+		offsetV = offsetV + ((sampleV - offsetV) / 1024.0);
 		filteredV = sampleV - offsetV;
-		offsetI1 = offsetI1 + ((sampleI1 - offsetI1) / 1024);
+		offsetI1 = offsetI1 + ((sampleI1 - offsetI1) / 1024.0);
 		filteredI1 = sampleI1 - offsetI1;
-		offsetI2 = offsetI2 + ((sampleI2 - offsetI2) / 1024);
+		offsetI2 = offsetI2 + ((sampleI2 - offsetI2) / 1024.0);
 		filteredI2 = sampleI2 - offsetI2;
 
 		//-----------------------------------------------------------------------------
@@ -176,21 +174,18 @@ void EnergyMonitor::calcVI(unsigned int crossings, float vcc)
 	double V_RATIO = VCAL * t;
 	Vrms = V_RATIO * sqrt(sumV / numberOfSamples);
 
-
 	double I_RATIO1 = ICAL1 * t;
 	double I_RATIO2 = ICAL2 * t;
 	Irms1 = I_RATIO1 * sqrt(sumI1 / numberOfSamples);
 	Irms2 = I_RATIO2 * sqrt(sumI2 / numberOfSamples);
 
-
-
 	//Calculation power values
 	realPower1 = V_RATIO * I_RATIO1 * sumP1 / numberOfSamples;
-	//apparentPower1 = Vrms * Irms1;
+	apparentPower1 = Vrms * Irms1;
 	powerFactor1 = realPower1 / apparentPower1;
 
 	realPower2 = V_RATIO * I_RATIO2 * sumP2 / numberOfSamples;
-	//apparentPower2 = Vrms * Irms2;
+	apparentPower2 = Vrms * Irms2;
 	powerFactor2 = realPower2 / apparentPower2;
 
 	//Reset accumulators
