@@ -28,7 +28,7 @@
 
 // Set up nRF24L01 radio on SPI bus plus pins 7 & 8
 
-RF24 radio(7,8);
+RF24 radio(9,10);
 
 //
 // Channel info

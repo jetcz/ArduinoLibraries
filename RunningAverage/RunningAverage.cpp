@@ -60,7 +60,7 @@ void RunningAverage::addValue(float f)
 // returns the average of the data-set added sofar
 float RunningAverage::getAverage()
 {
-    if (_cnt == 0) return NAN;
+    if (_cnt == 0) return 0;
     return _sum / _cnt;
 }
 

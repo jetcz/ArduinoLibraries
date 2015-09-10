@@ -5,6 +5,7 @@
   modified to use up to 12 bits ADC resolution (ex. Arduino Due)
   by boredman@boredomprojects.net 26.12.2013
   Low Pass filter for offset removal replaces HP filter 1/1/2015 - RW
+  Rewriten by jetcz to support non blocking behaviour and two outlets at once
   */
 
 #ifndef EmonLib_h
