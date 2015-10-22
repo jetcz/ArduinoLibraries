@@ -96,6 +96,8 @@ class QueueArray {
     // set the printer of the queue.
     void setPrinter (Print & p);
 
+	T * contents;    // the array of the queue.
+
   private:
     // resize the size of the queue.
     void resize (const int s);
@@ -113,7 +115,7 @@ class QueueArray {
     static const int ledPin = 13;
 
     Print * printer; // the printer of the queue.
-    T * contents;    // the array of the queue.
+
 
     int size;        // the size of the queue.
     int items;       // the number of items of the queue.
