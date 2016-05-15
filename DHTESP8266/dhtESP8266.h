@@ -29,7 +29,7 @@
 #define DHTLIB_ERROR_ACK_H          -5
 
 #define DHTLIB_DHT11_WAKEUP         18
-#define DHTLIB_DHT_WAKEUP           1
+#define DHTLIB_DHT_WAKEUP           1 //1
 
 #define DHTLIB_DHT11_LEADING_ZEROS  1
 #define DHTLIB_DHT_LEADING_ZEROS    6
