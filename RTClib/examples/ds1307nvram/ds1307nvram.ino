@@ -5,6 +5,11 @@
 #include <Wire.h>
 #include "RTClib.h"
 
+#if defined(ARDUINO_ARCH_SAMD)
+// for Zero, output on USB Serial console, remove line below if using programming port to program the Zero!
+   #define Serial SerialUSB
+#endif
+
 RTC_DS1307 rtc;
 
 void printnvram(uint8_t address) {
@@ -15,12 +20,11 @@ void printnvram(uint8_t address) {
 }
 
 void setup () {
-  Serial.begin(57600);
-#ifdef AVR
-  Wire.begin();
-#else
-  Wire1.begin(); // Shield I2C pins connect to alt I2C bus on Arduino Due
+
+#ifndef ESP8266
+  while (!Serial); // for Leonardo/Micro/Zero
 #endif
+  Serial.begin(57600);
   rtc.begin();
 
   // Print old RAM contents on startup.
