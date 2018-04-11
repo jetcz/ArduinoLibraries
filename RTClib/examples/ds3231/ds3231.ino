@@ -1,13 +1,8 @@
-// Date and time functions using a DS1307 RTC connected via I2C and Wire lib
+// Date and time functions using a DS3231 RTC connected via I2C and Wire lib
 #include <Wire.h>
 #include "RTClib.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
-// for Zero, output on USB Serial console, remove line below if using programming port to program the Zero!
-   #define Serial SerialUSB
-#endif
-
-RTC_DS1307 rtc;
+RTC_DS3231 rtc;
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
@@ -17,14 +12,17 @@ void setup () {
   while (!Serial); // for Leonardo/Micro/Zero
 #endif
 
-  Serial.begin(57600);
+  Serial.begin(9600);
+
+  delay(3000); // wait for console opening
+
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
     while (1);
   }
 
-  if (! rtc.isrunning()) {
-    Serial.println("RTC is NOT running!");
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, lets set the time!");
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
